@@ -148,6 +148,9 @@ def create_player():
 
 
 # Function to make a goblin
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
 def create_goblin():
     goblin = enemy(25, 1, 5, 3, 0, 11, "goblin")
     return random_equip(goblin)
@@ -166,10 +169,23 @@ def random_equip(chosen_char):
     return chosen_char
 
 
+def create_random_enemy():
+    return monster_function_dict[choice(monster_lst)]()
+
+
 # Some gear to test with
 broadsword = two_hand(0, 0, -2, 5, 0, -1, "broadsword")
 leather_chest = chest(0, 1, 5, 0, 0, 2, "leather_chest")
 
+
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
+# Automates the process of creating enemies using the list and dictionary
+monster_lst = ["Goblin"]
+monster_function_dict = {"Goblin": create_goblin}
+
+# Make player character
 player_char = create_player()
 # Some test code to make a character and make sure no errors when equipping
 """
@@ -183,3 +199,9 @@ print(player_char.speed)"""
 # Testing out random_equip
 """foe = create_goblin()
 print(foe.speed)"""
+
+
+running = True
+
+while running:
+    running = False
