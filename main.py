@@ -1,5 +1,5 @@
 # Import statements
-from random import choice
+from random import choice, randint
 from time import sleep
 
 
@@ -100,7 +100,7 @@ class being:
                                       " 2: Use magic(WIP)\n"
                                       " 3: Defend(WIP)\n"
                                       " 4: Run away(WIP)\n"
-                                      " 5: Inspect your foe")
+                                      " 5: Inspect your foe\n")
                 # Sleeps to pause for that action
                 sleep(1)
                 if action_choice == "1":
@@ -139,6 +139,13 @@ class enemy(being):
         super().__init__(health, armor, evasion, damage, mana, speed)
         self.name = name
 
+    # Prints out the monster and the equipment they are wearing
+    def print_self(self):
+        if len(self.equipment_lst) > 0:
+            print(self.name + " with " + self.equipment_to_string())
+        else:
+            print(self.name)
+
 
 # Master list of all equipment
 all_equipment_lst = []
@@ -156,6 +163,16 @@ class gear:
         self.name = name
         # Adds itself to all_equipment_lst
         all_equipment_lst.append(self)
+
+    # Prints out the stats of the gear
+    def stats(self):
+        print(self.name)
+        print(str(self.health) + " health")
+        print(str(self.mana) + " mana")
+        print(str(self.armor) + " armor")
+        print(str(self.damage) + " attack")
+        print(str(self.evasion) + " evasion")
+        print(str(self.speed) + " speed")
 
 
 # Helmet equipment
@@ -226,13 +243,42 @@ def create_player():
     return player(50, 2, 5, 5, 20, 10)
 
 
-# Function to make a goblin
-# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
-# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
-# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_list-------!
+# Functions to make monsters
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 def create_goblin():
     goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin")
     return random_equip(goblin)
+
+
+def create_orc():
+    orc = enemy(40, 2, -10, 5, 0, 2, "Orc")
+    return orc
+
+
+def create_wolf():
+    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf")
+    return wolf
+
+
+def create_dude():
+    dude = enemy(35, 1, 4, 4, 0, 10, "Dude")
+    return dude
+
+
+def create_goblin_mage():
+    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage")
+    return goblin_mage
+
+
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_lst-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_lst-------!
+# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_lst-------!
+# Automates the process of creating enemies using the list and dictionary
+monster_lst = ["Goblin", "Orc", "Wolf", "Dude", "Goblin Mage"]
+monster_function_dict = {"Goblin": create_goblin, "Orc": create_orc, "Wolf": create_wolf, "Dude": create_dude,
+                         "Goblin Mage": create_goblin_mage}
 
 
 # Randomly chooses a piece of gear from the equipment list
@@ -243,7 +289,6 @@ def choose_random_gear():
 # Equips a random piece of gear to a being
 def random_equip(chosen_char):
     chosen_gear = choose_random_gear()
-    print(chosen_char.name + " with a " + chosen_gear.name)
     chosen_char.equip_gear(chosen_gear)
     return chosen_char
 
@@ -263,6 +308,8 @@ def turn(opponent1, opponent2, turn_counter):
 # Combat loop
 def combat(opponent1, opponent2):
     turn_counter = 1
+    print("You encounter a ", end="")
+    opponent2.print_self()
     while opponent1.alive and opponent2.alive:
         # If they are both still alive, determines next turn order by speed comparison
         if opponent1.speed >= opponent2.speed:
@@ -272,16 +319,53 @@ def combat(opponent1, opponent2):
         turn_counter += 1
 
 
+# Creates a chest with an item the player can equip
+def chest_encounter():
+    chest_loot = choose_random_gear()
+    chest_loot.stats()
+    equip_choice = input("You find a chest with a " + chest_loot.name + " in it. Equip it? Y/N\n").lower()
+    equip_prompt(chest_loot, equip_choice)
+
+
+# function for grabbing/not grabbing equipment
+def equip_prompt(loot, equip_choice):
+    if equip_choice == "y":
+        print("Equipping the " + loot.name)
+        player_char.equip_gear(loot)
+    else:
+        print("You leave the " + loot.name + " behind, maybe someone else will use it")
+
+
+# Randomly chooses if the next encounter is a combat encounter or if the player finds a chest
+def random_encounter():
+    rand_num = randint(1, 10)
+    if rand_num <= 7:
+        combat_encounter()
+    else:
+        chest_encounter()
+
+
+# Creates an enemy then runs combat between the player and the enemy
+def combat_encounter():
+    # Creates a random enemy
+    foe = create_random_enemy()
+    # starts the combat loop
+    combat(player_char, foe)
+    # If the player is still alive
+    if player_char.alive:
+        # for each equipment worn by the monster
+        for i in range(0, len(foe.equipment_lst)):
+            # Asks if the player would like to equip it, and does accordingly
+            iterated_equipment = foe.equipment_lst[i]
+            equip_choice = input("The " + foe.name + " was wearing a " + iterated_equipment.name + ". Would you like "
+                                                                                                   "to equip it? Y/N"
+                                                                                                   "\n").lower()
+            equip_prompt(iterated_equipment, equip_choice)
+
+
 # Some gear to test with
 broadsword = two_hand(0, 0, -2, 5, 0, -1, "Broadsword")
 leather_chest = chest(0, 1, 5, 0, 0, 2, "Leather chest")
-
-# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
-# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
-# !-----Reminder for all create functions, add their function and name to monster_function_list and monster_list-------!
-# Automates the process of creating enemies using the list and dictionary
-monster_lst = ["Goblin"]
-monster_function_dict = {"Goblin": create_goblin}
 
 # Make player character
 player_char = create_player()
@@ -303,11 +387,9 @@ running = True
 
 # Main body loop
 while running:
-    # Creates a random enemy
-    foe = create_random_enemy()
-    # starts the combat loop
-    combat(player_char, foe)
-    # If the player dies, ends the loop
+    # Creates a random encounter
+    random_encounter()
+    # Checks if the player died
     if not player_char.alive:
         running = False
     # Else, it will keep going
