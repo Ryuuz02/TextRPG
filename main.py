@@ -89,32 +89,6 @@ class being:
                 print("You have been slain by " + self.name)
             opponent.alive = False
 
-    # casts a spell
-    def cast_spell(self, opponent):
-        # Prints out all spells the player has
-        print("Spells:")
-        for i in range(0, len(self.spell_lst)):
-            print(" " + str(i) + ": " + self.spell_lst[i])
-        # Asks user which one to cast
-        spell_choice = input("What spell would you like to cast (type the number tied to the spell), or "
-                             "type 'e' to exit\n")
-        # If the user wishes to back out of casting a spell
-        if spell_choice == "e":
-            self.take_action(opponent)
-        # Otherwise
-        else:
-            # Makes sure the user properly inputs an integer
-            try:
-                # If it is in the spell list
-                if int(spell_choice) < len(self.spell_lst):
-                    # Casts the spell
-                    cast_spell(self, opponent, self.spell_lst[int(spell_choice)])
-                # Else, will tell the user
-                else:
-                    print("You don't have that many spells")
-            except ValueError:
-                print("Not a valid input")
-
     # Each turn, all combatants will take their action
     def take_action(self, opponent):
         # Check to make sure they are alive
@@ -152,6 +126,8 @@ class being:
                 if self.mana == 0:
                     # if they have no mana, will just attack
                     self.attack(opponent)
+                else:
+                    self.determine_action(opponent)
 
 
 # The player character class
@@ -163,12 +139,41 @@ class player(being):
         self.spell_lst.append("Heal")
         self.spell_lst.append("Icicle")
 
+    # casts a spell
+    def cast_spell(self, opponent):
+        # Prints out all spells the player has
+        print("Spells:")
+        for i in range(0, len(self.spell_lst)):
+            print(" " + str(i) + ": " + self.spell_lst[i])
+        # Asks user which one to cast
+        spell_choice = input("What spell would you like to cast (type the number tied to the spell), or ""type 'e' to "
+                             "exit\n")
+        # If the user wishes to back out of casting a spell
+        if spell_choice == "e":
+            self.take_action(opponent)
+        # Otherwise
+        else:
+            # Makes sure the user properly inputs an integer
+            try:
+                # If it is in the spell list
+                if int(spell_choice) < len(self.spell_lst):
+                    # Casts the spell
+                    cast_spell(self, opponent, self.spell_lst[int(spell_choice)])
+                # Else, will tell the user
+                else:
+                    print("You don't have that many spells")
+            except ValueError:
+                print("Not a valid input")
+
 
 # Class for all enemies
 class enemy(being):
-    def __init__(self, health, armor, evasion, damage, mana, speed, name):
+    def __init__(self, health, armor, evasion, damage, mana, speed, name, tier, spell_lst):
         super().__init__(health, armor, evasion, damage, mana, speed)
         self.name = name
+        # Tier is basically how good of a spellcaster they are
+        self.tier = tier
+        self.spell_lst = spell_lst
 
     # Prints out the monster and the equipment they are wearing
     def print_self(self):
@@ -176,6 +181,18 @@ class enemy(being):
             print(self.name + " with " + self.equipment_to_string())
         else:
             print(self.name)
+
+    # Attempts to cast a random spell that they have
+    def cast_spell(self, opponent):
+        cast_spell(self, opponent, choice(self.spell_lst))
+
+    # Determines if they will attack or cast based on how good of a caster they are
+    def determine_action(self, opponent):
+        cast_chance = randint(1, 10)
+        if cast_chance <= self.tier:
+            self.cast_spell(opponent)
+        else:
+            self.attack(opponent)
 
 
 # Class for spells
@@ -308,27 +325,27 @@ def create_player():
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 def create_goblin():
-    goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin")
+    goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin", 0, [])
     return random_equip(goblin)
 
 
 def create_orc():
-    orc = enemy(40, 2, -10, 5, 0, 2, "Orc")
+    orc = enemy(40, 2, -10, 5, 0, 2, "Orc", 0, [])
     return orc
 
 
 def create_wolf():
-    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf")
+    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf", 0, [])
     return wolf
 
 
 def create_dude():
-    dude = enemy(35, 1, 4, 4, 0, 10, "Dude")
+    dude = enemy(35, 1, 4, 4, 0, 10, "Dude", 0, [])
     return dude
 
 
 def create_goblin_mage():
-    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage")
+    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage", 1, ["Fireball"])
     return goblin_mage
 
 
