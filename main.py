@@ -94,7 +94,7 @@ class being:
         # Check to make sure they are alive
         if self.alive:
             # If its the player
-            if type(self) == player:
+            if issubclass(type(self), player):
                 # Gives them an action prompt
                 action_choice = input("What would you like to do? \n"
                                       " 1: Attack your opponent\n"
@@ -132,12 +132,11 @@ class being:
 
 # The player character class
 class player(being):
-    def __init__(self, health, armor, evasion, damage, mana, speed):
+    def __init__(self, health, armor, evasion, damage, mana, speed, name):
         super().__init__(health, armor, evasion, damage, mana, speed)
-        self.name = "Player"
-        self.spell_lst.append("Fireball")
-        self.spell_lst.append("Heal")
-        self.spell_lst.append("Icicle")
+        self.name = name
+        self.level = 1
+        self.experience = 0
 
     # casts a spell
     def cast_spell(self, opponent):
@@ -165,15 +164,82 @@ class player(being):
             except ValueError:
                 print("Not a valid input")
 
+    # Refreshes health and mana back to maximum values
+    def refresh_vitals(self):
+        self.mana = self.max_mana
+        self.health = self.max_health
+
+    # Tells the user they leveled up, takes 10 experience, gives them stats, then refreshes their health and mana
+    def level_up(self):
+        print(self.name + " leveled up to level " + str(self.level + 1))
+        self.experience -= 10
+        self.class_up()
+        self.refresh_vitals()
+
+
+# <!-----------------Below are the different starting classes that the player can choose from-------------------------!>
+# They start with different stats (and potentially spells) and get a different assortment of stats on level up
+# These stats are the class specific class_up function
+
+# Stereotypical offensive casting class
+class mage(player):
+    def __init__(self, name):
+        super().__init__(40, 1, 10, 5, 20, 11, name)
+        self.spell_lst.append("Fireball")
+        self.spell_lst.append("Icicle")
+
+    def class_up(self):
+        self.max_mana += 5
+        self.max_health += 5
+        self.damage += 1
+        self.speed += 1
+
+
+# Heavy hitting no defense class
+class barbarian(player):
+    def __init__(self, name):
+        super().__init__(60, 0, 0, 7, 0, 13, name)
+
+    def class_up(self):
+        self.max_health += 10
+        self.damage += 1.5
+        self.speed += 1.5
+
+
+# defensive/support caster
+class cleric(player):
+    def __init__(self, name):
+        super().__init__(50, 1, 5, 5, 10, 10, name)
+        self.spell_lst.append("Heal")
+
+    def class_up(self):
+        self.max_health += 7
+        self.damage += 1
+        self.speed += 1
+        self.max_mana += 5
+
+
+# Tough all rounder class, tankier but much slower than barbarian
+class knight(player):
+    def __init__(self, name):
+        super().__init__(50, 2, 0, 7, 0, 9, name)
+
+    def class_up(self):
+        self.max_health += 7
+        self.armor += 1
+        self.damage += 1.5
+        self.speed += 1
+
 
 # Class for all enemies
 class enemy(being):
-    def __init__(self, health, armor, evasion, damage, mana, speed, name, tier, spell_lst):
+    def __init__(self, health, armor, evasion, damage, mana, speed, name, tier, spell_lst, experience):
         super().__init__(health, armor, evasion, damage, mana, speed)
         self.name = name
         # Tier is basically how good of a spellcaster they are
         self.tier = tier
         self.spell_lst = spell_lst
+        self.experience = experience
 
     # Prints out the monster and the equipment they are wearing
     def print_self(self):
@@ -317,7 +383,23 @@ class one_hand(gear):
 
 # Function to make the player
 def create_player():
-    return player(50, 2, 5, 5, 20, 10)
+    # Asks what class they would like
+    class_choice = input("Would you like to be a mage, barbarian, knight or cleric\n").lower()
+    # Asks their player name
+    name_choice = input("What is your character's name?\n")
+    # Creates the associated class as the player
+    if class_choice == "mage":
+        return mage(name_choice)
+    elif class_choice == "barbarian":
+        return barbarian(name_choice)
+    elif class_choice == "cleric":
+        return cleric(name_choice)
+    elif class_choice == "knight":
+        return knight(name_choice)
+    # Or tells them that it is not an option and to try again
+    else:
+        print("That is not a valid option")
+        return create_player()
 
 
 # Functions to make monsters
@@ -325,27 +407,27 @@ def create_player():
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 def create_goblin():
-    goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin", 0, [])
+    goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin", 0, [], 5)
     return random_equip(goblin)
 
 
 def create_orc():
-    orc = enemy(40, 2, -10, 5, 0, 2, "Orc", 0, [])
+    orc = enemy(40, 2, -10, 5, 0, 2, "Orc", 0, [], 5)
     return orc
 
 
 def create_wolf():
-    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf", 0, [])
+    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf", 0, [], 5)
     return wolf
 
 
 def create_dude():
-    dude = enemy(35, 1, 4, 4, 0, 10, "Dude", 0, [])
+    dude = enemy(35, 1, 4, 4, 0, 10, "Dude", 0, [], 5)
     return dude
 
 
 def create_goblin_mage():
-    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage", 1, ["Fireball"])
+    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage", 1, ["Fireball"], 5)
     return goblin_mage
 
 
@@ -483,6 +565,8 @@ def combat_encounter():
     combat(player_char, foe)
     # If the player is still alive
     if player_char.alive:
+        # Gives the player the monster's experience
+        player_char.experience += foe.experience
         # for each equipment worn by the monster
         for i in range(0, len(foe.equipment_lst)):
             # Asks if the player would like to equip it, and does accordingly
@@ -522,4 +606,8 @@ while running:
     # Checks if the player died
     if not player_char.alive:
         running = False
+    else:
+        # While the player has exp to level up, will keep leveling up
+        while player_char.experience >= 10:
+            player_char.level_up()
     # Else, it will keep going
