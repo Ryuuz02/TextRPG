@@ -13,6 +13,7 @@ running = True
 while running:
     # Creates a random encounter
     player = random_encounter(player)
+    player.reset_stats()
     # Checks if the player died
     if not player.alive:
         running = False

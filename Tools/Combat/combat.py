@@ -1,6 +1,8 @@
 # Takes a turn, where each opponent uses an action against eachother
 def turn(opponent1, opponent2, turn_counter):
     print("Starting turn " + str(turn_counter))
+    opponent1.tick_skills()
+    opponent2.tick_skills()
     opponent1.take_action(opponent2)
     opponent2.take_action(opponent1)
 

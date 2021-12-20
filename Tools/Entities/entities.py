@@ -3,6 +3,7 @@ from random import randint, choice
 from time import sleep
 
 from Tools.Equipment.equipment import random_equip
+from Tools.Skills.skills import use_skill, skill_class_dict
 from Tools.Spells.spells import cast_spell
 
 
@@ -14,13 +15,28 @@ class being:
         self.health = health
         self.max_health = health
         self.armor = armor
+        self.total_armor = armor
         self.damage = damage
+        self.total_damage = damage
         self.evasion = evasion
+        self.total_evasion = evasion
         self.mana = mana
         self.max_mana = mana
         self.equipment_lst = []
         self.speed = speed
+        self.total_speed = speed
         self.spell_lst = []
+        self.skill_lst = []
+        self.skill_cooldown_lst = []
+
+    def add_skill(self, skill_name):
+        self.skill_lst.append(skill_name)
+        self.skill_cooldown_lst.append(skill_class_dict[skill_name].cooldown)
+
+    def tick_skills(self):
+        for i in range(0, len(self.skill_cooldown_lst)):
+            if self.skill_cooldown_lst[i] != 0:
+                self.skill_cooldown_lst[i] -= 1
 
     # Adds the stats of a gear if one of that type is not already equipped
     def equip_gear(self, equipped_gear):
@@ -101,7 +117,7 @@ class being:
                 action_choice = input("What would you like to do? \n"
                                       " 1: Attack your opponent\n"
                                       " 2: Use magic\n"
-                                      " 3: Defend(WIP)\n"
+                                      " 3: Use Skill\n"
                                       " 4: Run away(WIP)\n"
                                       " 5: Inspect your foe\n")
                 # Sleeps to pause for that action
@@ -113,7 +129,8 @@ class being:
                     # 2 is cast spell
                     self.cast_spell(opponent)
                 elif action_choice == "3":
-                    print("That is currently a Work in Progress")
+                    # 3 is use skill
+                    self.use_skill(opponent)
                 elif action_choice == "4":
                     print("That is currently a Work in Progress")
                 elif action_choice == "5":
@@ -130,6 +147,12 @@ class being:
                     self.attack(opponent)
                 else:
                     self.determine_action(opponent)
+
+    def reset_stats(self):
+        self.armor = self.total_armor
+        self.speed = self.total_speed
+        self.evasion = self.total_evasion
+        self.damage = self.total_damage
 
     def determine_action(self, opponent):
         pass
@@ -153,7 +176,7 @@ class player(being):
         for i in range(0, len(self.spell_lst)):
             print(" " + str(i) + ": " + self.spell_lst[i])
         # Asks user which one to cast
-        spell_choice = input("What spell would you like to cast (type the number tied to the spell), or ""type 'e' to "
+        spell_choice = input("What spell would you like to cast (type the number tied to the spell), or type 'e' to "
                              "exit\n")
         # If the user wishes to back out of casting a spell
         if spell_choice == "e":
@@ -169,6 +192,31 @@ class player(being):
                 # Else, will tell the user
                 else:
                     print("You don't have that many spells")
+            except ValueError:
+                print("Not a valid input")
+
+    def use_skill(self, opponent):
+        # Prints out all spells the player has
+        print("Skills:")
+        for i in range(0, len(self.skill_lst)):
+            print(" " + str(i) + ": " + self.skill_lst[i])
+        # Asks user which one to cast
+        skill_choice = input("What skill would you like to use (type the number tied to the skill), or type 'e' to "
+                             "exit\n")
+        # If the user wishes to back out of casting a spell
+        if skill_choice == "e":
+            self.take_action(opponent)
+        # Otherwise
+        else:
+            # Makes sure the user properly inputs an integer
+            try:
+                # If it is in the spell list
+                if int(skill_choice) < len(self.skill_lst):
+                    # Casts the spell
+                    use_skill(self, opponent, self.skill_lst[int(skill_choice)], True)
+                # Else, will tell the user
+                else:
+                    print("You don't have that many skills")
             except ValueError:
                 print("Not a valid input")
 
@@ -210,6 +258,8 @@ class mage(player):
 class barbarian(player):
     def __init__(self, name):
         super().__init__(60, 0, 0, 7, 0, 13, name)
+        self.add_skill("Power Attack")
+        self.add_skill("Intimidating Roar")
 
     def class_up(self):
         self.max_health += 10
@@ -222,6 +272,7 @@ class cleric(player):
     def __init__(self, name):
         super().__init__(50, 1, 5, 5, 10, 10, name)
         self.spell_lst.append("Heal")
+        self.add_skill("Defend")
 
     def class_up(self):
         self.max_health += 7
@@ -234,6 +285,8 @@ class cleric(player):
 class knight(player):
     def __init__(self, name):
         super().__init__(50, 2, 0, 7, 0, 9, name)
+        self.add_skill("Defend")
+        self.add_skill("Power Attack")
 
     def class_up(self):
         self.max_health += 7
