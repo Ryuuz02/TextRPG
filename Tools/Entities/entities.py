@@ -412,7 +412,7 @@ monster_function_dict = {"Goblin": create_goblin, "Orc": create_orc, "Wolf": cre
 
 
 def create_scalar(player_char):
-    return player_char.level * 0.3
+    return player_char.level * 0.3 + 0.7
 
 
 # Creates a random enemy from all available enemies
