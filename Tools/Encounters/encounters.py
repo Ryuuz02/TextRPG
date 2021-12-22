@@ -25,7 +25,7 @@ def random_encounter(player):
 # Creates an enemy then runs combat between the player and the enemy
 def combat_encounter(player):
     # Creates a random enemy
-    foe = create_random_enemy()
+    foe = create_random_enemy(player)
     # starts the combat loop
     combat(player, foe)
     # If the player is still alive

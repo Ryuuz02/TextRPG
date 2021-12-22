@@ -3,7 +3,7 @@ from random import randint, choice
 from time import sleep
 
 from Tools.Equipment.equipment import random_equip
-from Tools.Skills.skills import use_skill, skill_class_dict
+from Tools.Skills.skills import use_skill
 from Tools.Spells.spells import cast_spell
 
 
@@ -31,12 +31,18 @@ class being:
 
     def add_skill(self, skill_name):
         self.skill_lst.append(skill_name)
-        self.skill_cooldown_lst.append(skill_class_dict[skill_name].cooldown)
+        self.skill_cooldown_lst.append(0)
 
     def tick_skills(self):
         for i in range(0, len(self.skill_cooldown_lst)):
             if self.skill_cooldown_lst[i] != 0:
                 self.skill_cooldown_lst[i] -= 1
+            if issubclass(type(self), player):
+                if self.skill_cooldown_lst[i] == 0:
+                    print(self.skill_lst[i] + " is available")
+                else:
+                    print(self.skill_lst[i] + " still has " + str(self.skill_cooldown_lst[i]) + " turns until it is "
+                                                                                             "available")
 
     # Adds the stats of a gear if one of that type is not already equipped
     def equip_gear(self, equipped_gear):
@@ -109,44 +115,7 @@ class being:
 
     # Each turn, all combatants will take their action
     def take_action(self, opponent):
-        # Check to make sure they are alive
-        if self.alive:
-            # If its the player
-            if issubclass(type(self), player):
-                # Gives them an action prompt
-                action_choice = input("What would you like to do? \n"
-                                      " 1: Attack your opponent\n"
-                                      " 2: Use magic\n"
-                                      " 3: Use Skill\n"
-                                      " 4: Run away(WIP)\n"
-                                      " 5: Inspect your foe\n")
-                # Sleeps to pause for that action
-                sleep(1)
-                if action_choice == "1":
-                    # 1 is attack
-                    self.attack(opponent)
-                elif action_choice == "2":
-                    # 2 is cast spell
-                    self.cast_spell(opponent)
-                elif action_choice == "3":
-                    # 3 is use skill
-                    self.use_skill(opponent)
-                elif action_choice == "4":
-                    print("That is currently a Work in Progress")
-                elif action_choice == "5":
-                    # 5 prints the opponents stats
-                    opponent.stats()
-                else:
-                    # if the user does not give valid choice
-                    print("You stand there confused, as you did not choose a valid option")
-            elif type(self) == enemy:
-                # If its the enemy
-                sleep(3)
-                if self.mana == 0:
-                    # if they have no mana, will just attack
-                    self.attack(opponent)
-                else:
-                    self.determine_action(opponent)
+        pass
 
     def reset_stats(self):
         self.armor = self.total_armor
@@ -160,6 +129,9 @@ class being:
     def cast_spell(self, opponent):
         pass
 
+    def use_skill(self, opponent):
+        pass
+
 
 # The player character class
 class player(being):
@@ -168,6 +140,36 @@ class player(being):
         self.name = name
         self.level = 1
         self.experience = 0
+
+        # If its the player
+
+    def take_action(self, opponent):
+        # Gives them an action prompt
+        action_choice = input("What would you like to do? \n"
+                              " 1: Attack your opponent\n"
+                              " 2: Use magic\n"
+                              " 3: Use Skill\n"
+                              " 4: Run away(WIP)\n"
+                              " 5: Inspect your foe\n")
+        # Sleeps to pause for that action
+        sleep(1)
+        if action_choice == "1":
+            # 1 is attack
+            self.attack(opponent)
+        elif action_choice == "2":
+            # 2 is cast spell
+            self.cast_spell(opponent)
+        elif action_choice == "3":
+            # 3 is use skill
+            self.use_skill(opponent)
+        elif action_choice == "4":
+            print("That is currently a Work in Progress")
+        elif action_choice == "5":
+            # 5 prints the opponents stats
+            opponent.stats()
+        else:
+            # if the user does not give valid choice
+            print("You stand there confused, as you did not choose a valid option")
 
     # casts a spell
     def cast_spell(self, opponent):
@@ -213,7 +215,8 @@ class player(being):
                 # If it is in the spell list
                 if int(skill_choice) < len(self.skill_lst):
                     # Casts the spell
-                    use_skill(self, opponent, self.skill_lst[int(skill_choice)], True)
+                    use_skill(self, opponent, self.skill_lst[int(skill_choice)], True,
+                              self.skill_cooldown_lst[int(skill_choice)])
                 # Else, will tell the user
                 else:
                     print("You don't have that many skills")
@@ -229,6 +232,7 @@ class player(being):
     def level_up(self):
         print(self.name + " leveled up to level " + str(self.level + 1))
         self.experience -= 10
+        self.level += 1
         self.class_up()
         self.refresh_vitals()
 
@@ -319,10 +323,23 @@ class enemy(being):
     # Determines if they will attack or cast based on how good of a caster they are
     def determine_action(self, opponent):
         cast_chance = randint(1, 10)
+        skill_chance = randint(1, 10)
         if cast_chance <= self.tier:
             self.cast_spell(opponent)
+        elif skill_chance <= len(self.skill_lst):
+            running = True
+            while running:
+                skill_choice = randint(0, len(self.skill_lst))
+                if self.skill_cooldown_lst[skill_choice] == 0:
+                    use_skill(self, opponent, self.skill_lst[skill_choice], True, self.skill_cooldown_lst[skill_choice])
+                    running = False
         else:
             self.attack(opponent)
+
+    def take_action(self, opponent):
+        # If its the enemy
+        sleep(3)
+        self.determine_action(opponent)
 
 
 # Function to make the player
@@ -350,28 +367,38 @@ def create_player():
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
 # !-----Reminder for all create functions, add their function and name to monster_function_dict and monster_lst-------!
-def create_goblin():
-    goblin = enemy(25, 1, 5, 3, 0, 11, "Goblin", 0, [], 5)
+def create_goblin(scalar):
+    goblin = enemy(25 * scalar, 1 * scalar, 5 * scalar, 3 * scalar, 0 * scalar, 11 * scalar, "Goblin", 0, [], 5)
+    if scalar >= 5:
+        goblin = random_equip(goblin)
     return random_equip(goblin)
 
 
-def create_orc():
-    orc = enemy(40, 2, -10, 5, 0, 2, "Orc", 0, [], 5)
+def create_orc(scalar):
+    orc = enemy(40 * scalar, 2 * scalar, -10 * scalar, 5 * scalar, 0 * scalar, 2 * scalar, "Orc", 0, [], 5)
+    if scalar >= 5:
+        orc = random_equip(orc)
     return orc
 
 
-def create_wolf():
-    wolf = enemy(30, 0, 15, 5, 0, 14, "Wolf", 0, [], 5)
+def create_wolf(scalar):
+    wolf = enemy(30 * scalar, 0 * scalar, 15 * scalar, 5 * scalar, 0 * scalar, 14 * scalar, "Wolf", 0, [], 5)
+    wolf.add_skill("Power Attack")
     return wolf
 
 
-def create_dude():
-    dude = enemy(35, 1, 4, 4, 0, 10, "Dude", 0, [], 5)
+def create_dude(scalar):
+    dude = enemy(35 * scalar, 1 * scalar, 4 * scalar, 4 * scalar, 0 * scalar, 10 * scalar, "Dude", 0, [], 5)
+    if scalar >= 5:
+        dude = random_equip(dude)
     return dude
 
 
-def create_goblin_mage():
-    goblin_mage = enemy(25, 1, 4, 3, 10, 10, "Goblin Mage", 1, ["Fireball"], 5)
+def create_goblin_mage(scalar):
+    goblin_mage = enemy(25 * scalar, 1 * scalar, 4 * scalar, 3 * scalar, 10 * scalar, 10 * scalar, "Goblin Mage",
+                        1, ["Fireball"], 5)
+    if scalar >= 5:
+        goblin_mage.spell_lst.append("Icicle")
     return goblin_mage
 
 
@@ -384,6 +411,10 @@ monster_function_dict = {"Goblin": create_goblin, "Orc": create_orc, "Wolf": cre
                          "Goblin Mage": create_goblin_mage}
 
 
+def create_scalar(player_char):
+    return player_char.level * 0.3
+
+
 # Creates a random enemy from all available enemies
-def create_random_enemy():
-    return monster_function_dict[choice(monster_lst)]()
+def create_random_enemy(player_char):
+    return monster_function_dict[choice(monster_lst)](create_scalar(player_char))

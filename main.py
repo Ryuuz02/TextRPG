@@ -5,6 +5,11 @@ from Tools.Encounters.encounters import random_encounter
 from Tools.Entities.entities import create_player
 
 player = create_player()
+player.level_up()
+player.level_up()
+player.level_up()
+player.level_up()
+
 
 # loop variable
 running = True

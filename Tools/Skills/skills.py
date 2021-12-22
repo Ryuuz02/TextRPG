@@ -5,19 +5,18 @@ class skill:
     # Assigning variables
     def __init__(self, cooldown, skilltype, tier, name):
         self.cooldown = cooldown
-        self.remaining_cooldown = 0
         self.skilltype = skilltype
         self.tier = tier
         self.name = name
 
     # function to actually use itself
-    def use_skill(self, user, opponent, is_player):
+    def use_skill(self, user, opponent, is_player, remaining_cooldown):
         # If the user has enough mana
-        if self.remaining_cooldown == 0:
-            # Takes their mana
-            self.remaining_cooldown = self.cooldown
+        if remaining_cooldown == 0:
             # Tells the user
             print(user.name + " used " + self.name + " on " + opponent.name)
+            skill_index = user.skill_lst.index(self.name)
+            user.skill_cooldown_lst[skill_index] = self.cooldown
             # uses the skill
             skill_function_dict[self.name](user, opponent)
         # If the user does not have the mana
@@ -58,7 +57,7 @@ def intimidating_roar(user, opponent):
     # Reduces opponents damage by 10%
     opponent.damage *= 0.9
     # Tells the user
-    print(user.name + " roared at " + opponent.name + ", reducing their damage by " + str(10/9 * opponent.damage))
+    print(user.name + " roared at " + opponent.name + ", reducing their damage by " + str(10 / 9 * opponent.damage))
 
 
 # !-----Reminder for all create functions, add their function and name to skill_function_dict and skill_class_dict-----!
@@ -76,5 +75,5 @@ skill_function_dict = {"Power Attack": power_attack, "Defend": defend, "Intimida
 
 
 # uses the skill
-def use_skill(user, opponent, skill_name, is_player):
-    skill_class_dict[skill_name].use_skill(user, opponent, is_player)
+def use_skill(user, opponent, skill_name, is_player, remaining_cooldown):
+    skill_class_dict[skill_name].use_skill(user, opponent, is_player, remaining_cooldown)
