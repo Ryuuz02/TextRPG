@@ -1,14 +1,13 @@
 # Import statements
 
 # Make player character
+from time import sleep
+
+from Tools.Audio.Audio import play_music_file_string
 from Tools.Encounters.encounters import random_encounter
 from Tools.Entities.entities import create_player
 
 player = create_player()
-player.level_up()
-player.level_up()
-player.level_up()
-player.level_up()
 
 
 # loop variable
@@ -22,6 +21,9 @@ while running:
     # Checks if the player died
     if not player.alive:
         running = False
+        print("You died")
+        play_music_file_string("Tools/Audio/Death.mp3")
+        sleep(10)
     else:
         # While the player has exp to level up, will keep leveling up
         while player.experience >= 10:

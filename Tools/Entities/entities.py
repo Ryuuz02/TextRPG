@@ -2,6 +2,7 @@
 from random import randint, choice
 from time import sleep
 
+from Tools.Audio.Audio import play_music_file_string
 from Tools.Equipment.equipment import random_equip
 from Tools.Skills.skills import use_skill
 from Tools.Spells.spells import cast_spell
@@ -42,7 +43,7 @@ class being:
                     print(self.skill_lst[i] + " is available")
                 else:
                     print(self.skill_lst[i] + " still has " + str(self.skill_cooldown_lst[i]) + " turns until it is "
-                                                                                             "available")
+                                                                                                "available")
 
     # Adds the stats of a gear if one of that type is not already equipped
     def equip_gear(self, equipped_gear):
@@ -230,6 +231,7 @@ class player(being):
 
     # Tells the user they leveled up, takes 10 experience, gives them stats, then refreshes their health and mana
     def level_up(self):
+        play_music_file_string("Tools/Audio/LevelUp.mp3")
         print(self.name + " leveled up to level " + str(self.level + 1))
         self.experience -= 10
         self.level += 1
