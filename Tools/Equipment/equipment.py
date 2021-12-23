@@ -108,6 +108,7 @@ def random_equip(chosen_char):
 # function for grabbing/not grabbing equipment
 def equip_prompt(player, loot, equip_choice):
     if equip_choice == "y":
+        # Get item music
         play_music_file_string("Tools/Audio/GetItem.mp3")
         print("Equipping the " + loot.name)
         player.equip_gear(loot)

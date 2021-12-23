@@ -231,6 +231,7 @@ class player(being):
 
     # Tells the user they leveled up, takes 10 experience, gives them stats, then refreshes their health and mana
     def level_up(self):
+        # Level up music
         play_music_file_string("Tools/Audio/LevelUp.mp3")
         print(self.name + " leveled up to level " + str(self.level + 1))
         self.experience -= 10
