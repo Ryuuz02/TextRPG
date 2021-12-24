@@ -4,6 +4,7 @@ from time import sleep
 
 from Tools.Audio.Audio import play_music_file_string
 from Tools.Equipment.equipment import random_equip
+from Tools.Images.ImageDisplay import display_image
 from Tools.Skills.skills import use_skill
 from Tools.Spells.spells import cast_spell
 
@@ -420,4 +421,6 @@ def create_scalar(player_char):
 
 # Creates a random enemy from all available enemies
 def create_random_enemy(player_char):
-    return monster_function_dict[choice(monster_lst)](create_scalar(player_char))
+    foe = monster_function_dict[choice(monster_lst)](create_scalar(player_char))
+    display_image("Tools/Images/" + foe.name + ".jpg")
+    return foe
